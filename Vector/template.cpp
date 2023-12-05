@@ -3,6 +3,7 @@
 */
 #include <string.h> // For memcpy()
 #include <stdlib.h> // For rand()
+#include "fibonacci.h" // for Fib class
 
 typedef int Rank;
 
@@ -85,10 +86,44 @@ template <typename T> void Vector<T>::shrink() { // When loading factor is too s
     delete [] oldElem; // free the origin
 }
 
+template <typename T> int Vector<T>::disordered() const {
+    int n = 0;
+    for ( int i = 1; i < _size; i++ ) 
+        if ( _elem[i] < _elem[i - 1] ) n++; 
+    return n; // if and only if n = 0 vector is ordered
+}
+
 template <typename T> // returns the position of the last element e if failure, low - 1 is returned （ find for unsorted ）
-Rank Vector<T>::find ( T const& e, Rank low, Rank high ) const { // assert: 0 <= low < high <= _size 
+Rank Vector<T>::find ( T const& e, Rank low, Rank high ) const { // assert: 0 <= low < high <= _size  
     while ( ( low < high-- ) && ( e != _elem[high] ) ); // find from the back to the front
     return high; // if high < low, it is failure, otherwise will return the rank
+}
+
+template <typename T> // find the last rank not greater than e in [low, high) (sorted)
+Rank Vector<T>::search ( T const& e, Rank low, Rank high ) const { // assert: 0 <= low < high <= _size
+    return ( rand() % 2 ) ? // Randomly use the binary search and Fibonacci search with each 50% probability
+        binSearch ( _elem, e, low, high ) : fibSearch ( _elem, e, low, high );
+}
+
+template <typename T> static Rank binSearch ( T* A, T const& e, Rank low, Rank high ) {
+    while ( low < high ) { // only one comparison to find right branch
+        Rank mid = ( low + high ) >> 1; // let middle as anchor
+        ( e < A[mid] ) ? high = mid : low = mid + 1; 
+    }
+    return --low; // When multiple hits, always return the highest rank; If fails, the failed location can be returned
+}
+
+template <typename T> static Rank fibSearch( T* A, T const & e, Rank low, Rank high ) {
+    Fib fib ( high - low ); // create Fib array spent O(logn) = O(log(high - low))
+    while (lo < hi) {
+        while ( high - low < fib.get() ) fib.prev();
+
+        Rank mid = low + fib.get() - 1; // divided according to the golden ratio
+        if.     ( e < A[mid] ) high = mid; 
+        else if ( A[mid] < e ) low = mid + 1; 
+        else                   return mi; 
+    }
+    return -1;// fail to find
 }
 
 template <typename T> T& Vector<T>::operator[] ( Rank r ) const // overload operator subscript
@@ -134,3 +169,36 @@ template <typename T> void Vector<T>::unsort ( Rank low, Rank high ) {
     for ( Rank i = high - low; i > 0; i-- ) // from the back to the front
         swap ( V[i - 1], V[rand() % i] ); // swap the elements from V[0, i) and V[i - 1] randomly
 }
+
+template <typename T> // delete duplicates, return the number of deleted elements
+int Vector<T>::deduplicate() { 
+    int oldSize = _size;
+    Rank i = 1; // begin at _elem[1]
+    while ( i < _size ) // from the front to the end
+        ( find ( _elem[i], 0, i ) < 0 ) ?
+            i++
+        : remove(i);
+    return oldSize - _size; // total number
+}
+
+template <typename T> int Vector<T>::uniquify() { // ordered vector repetitive element elimination algorithm
+    while ( ++j < _size ) 
+        if ( _elem[i] != _elem[j] ) // skip the similarities
+            _elem[++i] = _elem[j]; // When find different elements, move forward to the immediate right of the former
+    _size = ++i; shrink(); // remove the rest of elements
+    return j - i;
+}
+
+template <typename T> void Vector<T>::traverse ( void ( *visit ) ( T& ) ) // using function pointer
+{ for ( int i = 0; i < _size; i++ ) visit ( _elem[i] ); } // traverse the whole vector
+
+template <typename T> template <typename VST> // type of element and operator
+void Vector<T>::traverse ( VST& visit ) // using function object
+{ for ( int i = 0; i < _size; i++ ) visit ( _elem[i] ); } // traverse the whole vector
+
+// for instance
+template <typename T> struct Increase // function object: increment a T object
+    { virtual void operator() ( T& e ) { e++; } }; // suppose T can be incremented directly or "++" is overloaded
+
+template <typename T> void increase ( Vector<T> & V ) // uniformly increasing elements in a vector
+{ V.traverse ( Increase<T>() ); } // traserve based on Increase<T>() 
