@@ -6,27 +6,16 @@
 #include <stdio.h>
 #include <string.h> // For memcpy()
 #include <stdlib.h> // For free() rand()
+#include "Bitmap.h" // For Bitmap
 // #include <stdbool.h>
 
 #define DEFAULT_CAPACITY 3
+#define DEFAULT_VALUE 0
 #define True 1
 #define False 0
 
 typedef int Rank;
 typedef int Bool;
-
-typedef enum {
-    TYPE_INT,
-    TYPE_CHAR,
-    TYPE_FLOAT,
-    TYPE_DOUBLE,
-    TYPE_LONG,
-    TYPE_SHORT,
-    TYPE_UNSIGNED_INT,
-    TYPE_UNSIGNED_CHAR,
-    TYPE_UNSIGNED_LONG,
-    TYPE_UNSIGNED_SHORT,
-} ElementType;
 
 // create a fibonacci struct
 typedef struct {
@@ -53,13 +42,52 @@ int fib_get ( Fib* fib ) {
     return fib->f;
 }
 
+typedef enum {
+    TYPE_INT,
+    TYPE_CHAR,
+    TYPE_FLOAT,
+    TYPE_DOUBLE,
+    TYPE_LONG,
+    TYPE_SHORT,
+    TYPE_UNSIGNED_INT,
+    TYPE_UNSIGNED_CHAR,
+    TYPE_UNSIGNED_LONG,
+    TYPE_UNSIGNED_SHORT,
+} ElementType;
+
 typedef struct {
     Rank _size;     // the size of vector
     int _capacity;  // the capacity of vector
     void* _elem;    // the data of vector
     size_t _elementSize; //size of each element in bytes
+    void (*_print_func)(const void*);
     ElementType _type; // store the type of elements
 } Vector;
+
+// Functions to print particular type
+void _print_int(const void* e) { printf("%d ", *(const int*)e); }
+void _print_char(const void* e) { printf("%c ", *(const char*)e); }
+void _print_float(const void* e) { printf("%f ", *(const float*)e); }
+void _print_double(const void* e) { printf("%lf ", *(const double*)e); }
+void _print_long(const void* e) { printf("%ld ", *(const long*)e); }
+void _print_short(const void* e) { printf("%hd ", *(const short*)e); }
+void _print_unsigned_int(const void* e) { printf("%u ", *(const unsigned int*)e); }
+void _print_unsigned_char(const void* e) { printf("%c ", *(const unsigned char*)e); }
+void _print_unsigned_long(const void* e) { printf("%lu ", *(const unsigned long*)e); }
+void _print_unsigned_short(const void* e) { printf("%hu ", *(const unsigned short*)e); }
+
+// Functions for converging data particular data type
+
+int* _to_int_ptr(void* ptr) { return (int*)ptr; }
+char* _to_char_ptr(void* ptr) { return (char*)ptr; }
+float* _to_float_ptr(void* ptr) { return (float*)ptr; }
+double* _to_double_ptr(void* ptr) { return (double*)ptr; }
+long* _to_long_ptr(void* ptr) { return (long*)ptr; }
+short* _to_short_ptr(void* ptr) { return (short*)ptr; }
+unsigned int* _to_unsigned_int_ptr(void* ptr) { return (unsigned int*)ptr; }
+unsigned char* _to_unsigned_char_ptr(void* ptr) { return (unsigned char*)ptr; }
+unsigned long* _to_unsigned_long_ptr(void* ptr) { return (unsigned long*)ptr; }
+unsigned short* _to_unsigned_short_ptr(void* ptr) { return (unsigned short*)ptr; }
 
 // _vector_* is the proteceted function
 
@@ -71,64 +99,13 @@ Rank _vector_bubble ( Vector* vec, Rank low, Rank high );
 void _vector_bubbleSort ( Vector* vec, Rank low, Rank high );    // bubble sort algorithm
 Rank _vector_max ( Vector* vec, Rank low, Rank high );   // select the maximum item
 void _vector_selectionSort ( Vector* vec, Rank low, Rank high ); // selection sorting algorithm
-void _vector_merge ( Vector* vec, Rank low, Rank high ); // merging algorithm
+void _vector_merge ( Vector* vec, Rank low, Rank mid, Rank high ); // merging algorithm
 void _vector_mergeSort ( Vector* vec, Rank low, Rank high ); // merging sorting algorithm
+void _vector_merge_effective ( Vector* vec, Rank low, Rank mid, Rank high, void* B ); // more effective with changed _vector_mergeSort_effective
+void _vector_mergeSor_effective ( Vector* vec, Rank low, Rank high ); // more effective merging sort
 Rank _vector_partition ( Vector* vec, Rank low, Rank high ); // axis point pole-building algorithm
 void _vector_quickSort ( Vector* vec, Rank low, Rank high ); // quick sort algorithm
 void _vector_heapSort ( Vector* vec, Rank low, Rank high );  // heap sort
-
-// comparison functions for single type are also protected functions
-
-Bool _compare_ints(const void* a, const void* b) {
-    int valA = *(const int*)a;
-    int valB = *(const int*)b;
-    return (valA < valB) ? True : False ;
-}
-Bool _compare_chars(const void* a, const void* b) {
-    char valA = *(const char*)a;
-    char valB = *(const char*)b;
-    return (valA < valB) ? True : False ;
-}
-Bool _compare_floats(const void* a, const void* b) {
-    float valA = *(const float*)a;
-    float valB = *(const float*)b;
-    return (valA < valB) ? True : False ;
-}
-Bool _compare_doubles(const void* a, const void* b) {
-    double valA = *(const double*)a;
-    double valB = *(const double*)b;
-    return (valA < valB) ? True : False ;
-}
-Bool _compare_longs(const void* a, const void* b) {
-    long valA = *(const long*)a;
-    long valB = *(const long*)b;
-    return (valA < valB) ? True : False ;
-}  
-Bool _compare_shorts(const void* a, const void* b) {
-    short valA = *(const short*)a;
-    short valB = *(const short*)b;
-    return (valA < valB) ? True : False ;
-}
-Bool _compare_unsigned_ints(const void* a, const void* b) {
-    unsigned valA = *(const unsigned*)a;
-    unsigned valB = *(const unsigned*)b;
-    return (valA < valB) ? True : False ;
-}
-Bool _compare_unsigned_chars ( const void* a, const void* b ) {
-    unsigned char valA = *(const unsigned char*)a;
-    unsigned char valB = *(const unsigned char*)b;
-    return (valA < valB) ? True : False ;
-}
-Bool _compare_unsigned_longs ( const void* a, const void* b ) {
-    unsigned long valA = *(const unsigned long*)a;
-    unsigned long valB = *(const unsigned long*)b;
-    return (valA < valB) ? True : False ;
-}
-Bool _compare_unsigned_shorts ( const void* a, const void* b ) {
-    unsigned short valA = *(const unsigned short*)a;
-    unsigned short valB = *(const unsigned short*)b;
-    return (valA < valB) ? True : False ;
-} 
 
 // vector_* is the public function
 
@@ -178,6 +155,7 @@ void vector_unsort ( Vector* vec, Rank low, Rank high );    // unsort part of ve
 void vector_unsort_all ( Vector* vec ) { vector_unsort ( vec, 0, vec->_size ); }    // unsort the whole vector
 int vector_deduplicate ( Vector* vec );    // remove duplicates (unsorted)
 int vector_uniquify ( Vector* vec );   // remove duplicates (sorted)
+int vector_uniquify_effective ( Vector* vec ); // more efective with Bitmap
 
 // Traverse
 
@@ -280,7 +258,7 @@ void _vector_shrink( Vector* vec ) {
 }
 
 Rank _vector_bubble ( Vector* vec, Rank low, Rank high ) {
-    Rank last = low; // initialization
+    Rank last = low; // Initialization
     while ( ++low < high )  // From left to right, check each pair of adjacent elements one by one
         if ( vector_element_smaller ( vec, vec, low, low - 1 ) ) { // If the order is reversed, then
             last = low; // Update the right-most reverse pair position record and
@@ -292,15 +270,219 @@ Rank _vector_bubble ( Vector* vec, Rank low, Rank high ) {
 void _vector_bubbleSort ( Vector* vec, Rank low, Rank high ) 
 { while ( low < ( high = _vector_bubble ( vec, low, high ) ) ) ; }  // Scan the exchange, trip by trip, until full order
 
-void vector_init(Vector* vec, int c, int s, size_t elementSize, void* v, ElementType type) { // initialize vector with full of v
+void _vector_merge ( Vector* vec, Rank low, Rank mid, Rank high ) {
+    size_t elemSize = vec->_elementSize;
+    Rank lb = mid - low;
+    void* B = malloc ( lb * elemSize );
+    if (!B) return; // Memory allocation check
+
+    // Copy the left subvector to B
+    for ( Rank i = 0; i < lb; ++i ) {
+        memcpy ( (char*)B + ( i * elemSize ), (char*) vec->_elem + ( (low + i) * elemSize ), elemSize );
+    }
+
+    void* A = (char*) vec->_elem + ( low * elemSize );
+    void* C = (char*) vec->_elem + ( mid * elemSize );
+    Rank lc = high - mid;
+
+    for ( Rank i = 0, j = 0, k = 0; j < lb; ) {
+        switch (vec->_type) {
+            case TYPE_INT:
+                if ( !(k < lc) || ( *_to_int_ptr ( (char*) B + j * elemSize) <= *_to_int_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_int_ptr ( (char*) C + k * elemSize ) < *_to_int_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_CHAR:
+                if ( !(k < lc) || ( *_to_char_ptr ( (char*) B + j * elemSize) <= *_to_char_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_char_ptr ( (char*) C + k * elemSize ) < *_to_char_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_FLOAT:
+                if ( !(k < lc) || ( *_to_float_ptr ( (char*) B + j * elemSize) <= *_to_float_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_float_ptr ( (char*) C + k * elemSize ) < *_to_float_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_DOUBLE:
+                if ( !(k < lc) || ( *_to_double_ptr ( (char*) B + j * elemSize) <= *_to_double_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_double_ptr ( (char*) C + k * elemSize ) < *_to_double_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_LONG:
+                if ( !(k < lc) || ( *_to_long_ptr ( (char*) B + j * elemSize) <= *_to_long_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_long_ptr ( (char*) C + k * elemSize ) < *_to_long_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_SHORT:
+                if ( !(k < lc) || ( *_to_short_ptr ( (char*) B + j * elemSize) <= *_to_short_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_short_ptr ( (char*) C + k * elemSize ) < *_to_short_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_UNSIGNED_INT:
+                if ( !(k < lc) || ( *_to_unsigned_int_ptr ( (char*) B + j * elemSize) <= *_to_unsigned_int_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_unsigned_int_ptr ( (char*) C + k * elemSize ) < *_to_unsigned_int_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_UNSIGNED_CHAR:
+                if ( !(k < lc) || ( *_to_unsigned_char_ptr ( (char*) B + j * elemSize) <= *_to_unsigned_char_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_unsigned_char_ptr ( (char*) C + k * elemSize ) < *_to_unsigned_char_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_UNSIGNED_LONG:
+                if ( !(k < lc) || ( *_to_unsigned_long_ptr ( (char*) B + j * elemSize) <= *_to_unsigned_long_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_unsigned_long_ptr ( (char*) C + k * elemSize ) < *_to_unsigned_long_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_UNSIGNED_SHORT:
+                if ( !(k < lc) || ( *_to_unsigned_short_ptr ( (char*) B + j * elemSize) <= *_to_unsigned_short_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_unsigned_short_ptr ( (char*) C + k * elemSize ) < *_to_unsigned_short_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+        }
+    }
+
+    free(B); // Free temporary array
+}
+
+void _vector_mergeSort ( Vector* vec, Rank low, Rank high ) {
+    if ( high - low < 2 ) return; // Single-element intervals are naturally ordered, otherwise ••
+
+    int mid = ( low + high ) >> 1; // Delimited by the midpoint
+    _vector_mergeSort ( vec, low, mid ); // Sort the first half
+    _vector_mergeSort ( vec, mid, high );
+    if ( vector_element_smaller ( vec, vec, mid, mid - 1 ) )
+        _vector_merge ( vec, low, mid, high ); // Merge
+}
+
+void _vector_merge_effective ( Vector* vec, Rank low, Rank mid, Rank high, void* B ) {
+    size_t elemSize = vec->_elementSize;
+    Rank lb = mid - low;
+
+    // Copy the left subvector to B
+    for ( Rank i = 0; i < lb; ++i ) {
+        memcpy ( (char*)B + ( i * elemSize ), (char*) vec->_elem + ( (low + i) * elemSize ), elemSize );
+    }
+
+    void* A = (char*) vec->_elem + ( low * elemSize );
+    void* C = (char*) vec->_elem + ( mid * elemSize );
+    Rank lc = high - mid;
+
+    for ( Rank i = 0, j = 0, k = 0; j < lb; ) {
+        switch (vec->_type) {
+            case TYPE_INT:
+                if ( !(k < lc) || ( *_to_int_ptr ( (char*) B + j * elemSize) <= *_to_int_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_int_ptr ( (char*) C + k * elemSize ) < *_to_int_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_CHAR:
+                if ( !(k < lc) || ( *_to_char_ptr ( (char*) B + j * elemSize) <= *_to_char_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_char_ptr ( (char*) C + k * elemSize ) < *_to_char_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_FLOAT:
+                if ( !(k < lc) || ( *_to_float_ptr ( (char*) B + j * elemSize) <= *_to_float_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_float_ptr ( (char*) C + k * elemSize ) < *_to_float_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_DOUBLE:
+                if ( !(k < lc) || ( *_to_double_ptr ( (char*) B + j * elemSize) <= *_to_double_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_double_ptr ( (char*) C + k * elemSize ) < *_to_double_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_LONG:
+                if ( !(k < lc) || ( *_to_long_ptr ( (char*) B + j * elemSize) <= *_to_long_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_long_ptr ( (char*) C + k * elemSize ) < *_to_long_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_SHORT:
+                if ( !(k < lc) || ( *_to_short_ptr ( (char*) B + j * elemSize) <= *_to_short_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_short_ptr ( (char*) C + k * elemSize ) < *_to_short_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_UNSIGNED_INT:
+                if ( !(k < lc) || ( *_to_unsigned_int_ptr ( (char*) B + j * elemSize) <= *_to_unsigned_int_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_unsigned_int_ptr ( (char*) C + k * elemSize ) < *_to_unsigned_int_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_UNSIGNED_CHAR:
+                if ( !(k < lc) || ( *_to_unsigned_char_ptr ( (char*) B + j * elemSize) <= *_to_unsigned_char_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_unsigned_char_ptr ( (char*) C + k * elemSize ) < *_to_unsigned_char_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_UNSIGNED_LONG:
+                if ( !(k < lc) || ( *_to_unsigned_long_ptr ( (char*) B + j * elemSize) <= *_to_unsigned_long_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_unsigned_long_ptr ( (char*) C + k * elemSize ) < *_to_unsigned_long_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+            case TYPE_UNSIGNED_SHORT:
+                if ( !(k < lc) || ( *_to_unsigned_short_ptr ( (char*) B + j * elemSize) <= *_to_unsigned_short_ptr ( (char*) C + k * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) B + ( j++ * elemSize ), elemSize); }
+                if ((k < lc) && ( *_to_unsigned_short_ptr ( (char*) C + k * elemSize ) < *_to_unsigned_short_ptr ( (char*) B + j * elemSize ) ) ) 
+                { memcpy ( (char*) A + (i++ * elemSize), (char*) C + ( k++ * elemSize ), elemSize); } break;
+        }
+    }
+}
+
+void _vector_mergeSort_effective ( Vector* vec, Rank low, Rank high ) {
+    if ( high - low < 2 ) return; // Single-element intervals are naturally ordered, otherwise ••
+
+    void* B = malloc ( vec->_size * vec->_elementSize );  // the maximum space may need
+    if ( !B ) return; 
+
+    int mid = ( low + high ) >> 1;
+    _vector_mergeSort_effective ( vec, low, mid );
+    _vector_mergeSort_effective ( vec, mid, high );
+    if ( vector_element_smaller ( vec, vec, mid, mid - 1 ) )
+        _vector_merge_effective ( vec, low, mid, high, B );
+
+    free(B);
+    B = NULL; // reset B pointer
+}
+
+void vector_init ( Vector* vec, int c, int s, size_t elementSize, void* v, ElementType type ) { // initialize vector with full of v
     vec->_capacity = c;
     vec->_size = s > c ? c : s;
     vec->_elementSize = elementSize;
     vec->_elem = malloc(elementSize * c);
     vec->_type = type; // Set the type of elements
 
-    for (int i = 0; i < vec->_size; i++) 
-        memcpy((char*)vec->_elem + (i * elementSize), v, elementSize);
+    switch (type) {
+        case TYPE_INT:
+            vec->_print_func = _print_int;
+            break;
+        case TYPE_CHAR:
+            vec->_print_func = _print_char;
+            break;
+        case TYPE_FLOAT:
+            vec->_print_func = _print_float;
+            break;
+        case TYPE_DOUBLE:
+            vec->_print_func = _print_double;
+            break;
+        case TYPE_LONG:
+            vec->_print_func = _print_long;
+            break;
+        case TYPE_SHORT:
+            vec->_print_func = _print_short;
+            break;
+        case TYPE_UNSIGNED_INT:
+            vec->_print_func = _print_unsigned_int;
+            break;
+        case TYPE_UNSIGNED_CHAR:
+            vec->_print_func = _print_unsigned_char;
+            break;
+        case TYPE_UNSIGNED_LONG:
+            vec->_print_func = _print_unsigned_long;
+            break;
+        case TYPE_UNSIGNED_SHORT:
+            vec->_print_func = _print_unsigned_short;
+            break;
+        default:
+            vec->_print_func = _print_int;
+            break;
+    }
+
+    for ( int i = 0; i < vec->_size; i++ ) 
+        memcpy ( (char*) vec->_elem + ( i * elementSize ), v, elementSize );
 }
 
 void vector_initFromArray ( Vector* vec, const void* A, Rank n, size_t elementSize ) { // initialize vector with first n element of array A
@@ -321,18 +503,9 @@ void vector_initFromVectorRange ( Vector* vec, const Vector* V, Rank low, Rank h
 
 void vector_print ( const Vector* vec ) {
     for ( int i = 0; i < vec->_size; i++ ) {
-        void* currentElement = ( char* ) vec->_elem + ( i * vec->_elementSize );
-
-        if ( vec->_elementSize == sizeof ( int ) ) {
-            printf ( "%d ", *( ( int* ) currentElement ) );
-        } else if ( vec->_elementSize == sizeof ( double ) ) {
-            printf ( "%lf ", *( ( double* ) currentElement ) );
-        } else if ( vec->_elementSize == sizeof ( char ) ) {
-            printf ( "%c ", *( ( char* ) currentElement ) );
-        }
-        // and more cases for other data types ...
+        vec->_print_func( (char*) vec->_elem +  (i * vec->_elementSize ) );
     }
-    printf ( "\n" );
+    printf( "\n" );
 }
 
 void swap ( void* a, void* b, size_t size ) {
@@ -342,7 +515,7 @@ void swap ( void* a, void* b, size_t size ) {
     memcpy ( b, temp, size );
 }
 
-int vector_disordered( const Vector* vec ) {
+int vector_disordered ( const Vector* vec ) {
     int n = 0;
     for ( int i = 1; i < vec->_size; i++ )
         if ( !vector_element_smaller ( vec, vec, i, i - 1 ) ) n++;
@@ -418,33 +591,32 @@ Bool vector_element_equals ( const Vector* first, const Vector* last, Rank first
 }
 
 Bool vector_element_smaller ( const Vector* first, const Vector* last, Rank first_rank, Rank last_rank ) {
-    if ( !vector_at ( first, first_rank ) || !vector_at ( last, last_rank ) ) return False; // Null check
+    if ( ! vector_at ( first, first_rank ) || ! vector_at ( last, last_rank ) ) return False; // Null check
 
-    if ( vector_element_equals ( first, last, first_rank, last_rank ) ) return False; // first = last
+    if ( vector_element_equals ( first, last, first_rank, last_rank ) ) return False; // Equal check
 
-    // based on type of first vector
+    // Perform comparison based on type
     switch (first->_type) {
         case TYPE_INT:
-            return _compare_ints ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_int_ptr(vector_at(first, first_rank)) < *_to_int_ptr(vector_at(last, last_rank));
         case TYPE_CHAR:
-            return _compare_chars ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_char_ptr(vector_at(first, first_rank)) < *_to_char_ptr(vector_at(last, last_rank));
         case TYPE_FLOAT:
-            return _compare_floats ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_float_ptr(vector_at(first, first_rank)) < *_to_float_ptr(vector_at(last, last_rank));
         case TYPE_DOUBLE:
-            return _compare_doubles ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_double_ptr(vector_at(first, first_rank)) < *_to_double_ptr(vector_at(last, last_rank));
         case TYPE_LONG:
-            return _compare_longs ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_long_ptr(vector_at(first, first_rank)) < *_to_long_ptr(vector_at(last, last_rank));
         case TYPE_SHORT:
-            return _compare_shorts ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_short_ptr(vector_at(first, first_rank)) < *_to_short_ptr(vector_at(last, last_rank));
         case TYPE_UNSIGNED_INT:
-            return _compare_unsigned_ints ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
-
+            return *_to_unsigned_int_ptr(vector_at(first, first_rank)) < *_to_unsigned_int_ptr(vector_at(last, last_rank));
         case TYPE_UNSIGNED_CHAR:
-            return _compare_unsigned_chars ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_unsigned_char_ptr(vector_at(first, first_rank)) < *_to_unsigned_char_ptr(vector_at(last, last_rank));
         case TYPE_UNSIGNED_LONG:
-            return _compare_unsigned_longs ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_unsigned_long_ptr(vector_at(first, first_rank)) < *_to_unsigned_long_ptr(vector_at(last, last_rank));
         case TYPE_UNSIGNED_SHORT:
-            return _compare_unsigned_shorts ( vector_at( first, first_rank ), vector_at( last, last_rank ) );
+            return *_to_unsigned_short_ptr(vector_at(first, first_rank)) < *_to_unsigned_short_ptr(vector_at(last, last_rank));
         default:
             return False; // Unknown type or not comparable
     }
@@ -556,53 +728,91 @@ int vector_uniquify ( Vector* vec ) {  // iterate over the elements of sorted ve
     return j - i;   // Return the number of removed elements
 }
 
+int vector_uniquify_effective ( Vector* vec ) {
+    if ( vec->_size < 2 ) return 0;  // No duplicates in a vector of size 0 or 1
+
+    Bitmap bmp;
+    Bitmap_init ( &bmp, vec->_size );  // Initialize the Bitmap with the size of the vector
+
+    Rank i = 0, j = 0;
+    while ( ++j < vec->_size ) {
+        if ( vector_element_equals ( vec, vec, i, j ) ) 
+            Bitmap_set ( &bmp, j ); // Mark this index as duplicate in Bitmap
+        else ++i;
+    }
+
+    // Now remove the marked elements in a single pass
+    i = 0, j = 0;
+    while ( ++j < vec->_size ) {
+        if ( !Bitmap_test ( &bmp, j ) )
+            // Shift the element only if it's not marked as duplicate
+            _vector_shift_element(vec, j, ++i);
+    }
+
+    // Adjust the size after duplicates are marked
+    vec->_size = ++i;
+    _vector_shrink( vec ); // Shrink if necessary
+
+    return vec->_size - i; // Return the number of removed elements
+}
+
 // Traverse using a function pointer
-void vector_traverse(Vector* vec, void (*func)(void*)) {
+void vector_traverse ( Vector* vec, void (*func)(void*) ) {
     for (int i = 0; i < vec->_size; ++i) {
         func((char*)vec->_elem + (i * vec->_elementSize));
     }
 }
 
 // Traverse using a function pointer with context
-void vector_traverse_with_context(Vector* vec, void (*func)(void*, void*), void* context) {
+void vector_traverse_with_context ( Vector* vec, void (*func)(void*, void*), void* context ) {
     for (int i = 0; i < vec->_size; ++i) {
         func((char*)vec->_elem + (i * vec->_elementSize), context);
     }
 }
 
 // Function to increment an integer
-void increment_int(void* e) {
+void increment_int ( void* e ) {
     if (e != NULL) {
         (*(int*)e)++; // change e to an integer pointer
     }
 }
 
 // Function to increment each element in the vector
-void increase_vector(Vector* vec) {
+void increase_vector ( Vector* vec ) {
     vector_traverse(vec, increment_int);
 }
 
 int main() {
+
     Vector test;
-    int initialValue = 10;
-    vector_init ( &test, DEFAULT_CAPACITY, 5, sizeof(int), &initialValue , TYPE_INT );
+    float initialValue = 10.0;
+    vector_init ( &test, DEFAULT_CAPACITY, 5, sizeof(float), &initialValue , TYPE_FLOAT );
     vector_print( &test );
     _vector_expand ( &test );
-    int nums[] = {3,9,11};
-    int nums2[] = {4,7,5};
+    float nums[] = {3.0,9.0,11.0};
+    float nums2[] = {4.0,7.0,5.0};
     for ( int i = 0; i < (int) ( sizeof(nums)/sizeof(nums[0]) ); i++ ) {
         vector_insert ( &test, vector_search_full ( &test, nums + i ) + 1, nums + i );
         vector_insert_last ( &test, nums2 + i );
     }
-    _vector_bubbleSort ( &test, 0, test._size );
+    _vector_mergeSort_effective ( &test, 0, test._size );
     vector_print ( &test );
     printf( "%d\n", vector_disordered ( &test ) );
     printf( "%d\n", vector_find_full ( &test, &initialValue ) );
     increase_vector ( &test );
 
-    vector_deduplicate ( &test );
+    vector_uniquify_effective ( &test );
     vector_print( &test );
 
     vector_destory( &test );
+
+    Bitmap* bmp = Bitmap_new(16);  // Create a new Bitmap of size 16 bits
+    Bitmap_set(bmp, 3);            // Set the 3rd bit
+    Bitmap_clear(bmp, 5);          // Clear the 5th bit
+    printf("%s\n", Bitmap_bits_to_string(bmp, 8)); // Print first 8 bits as a string
+
+    // Clean up
+    Bitmap_destroy(bmp);
+
     return 0;
 }

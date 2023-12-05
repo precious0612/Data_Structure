@@ -19,7 +19,7 @@ template <typename T> class Vector {
         void bubbleSort ( Rank low, Rank high ); // bubble sorting algorithm
         Rank max ( Rank low, Rank high ); // select the maximum item
         void selectionSort ( Rank low, Rank high ); // selection sorting algorithm
-        void merge ( Rank low, Rank high ); // merging algorithm
+        void merge ( Rank low, Rank mid, Rank high ); // merging algorithm
         void mergeSort ( Rank low, Rank high ); // merging sorting algorithm
         Rank partition ( Rank low, Rank high ); // axis point pole-building algorithm
         void quickSort ( Rank low, Rank high ); // quick sort algorithm
@@ -86,6 +86,40 @@ template <typename T> void Vector<T>::shrink() { // When loading factor is too s
     delete [] oldElem; // free the origin
 }
 
+template <typename T> bool Vector<T>::bubble ( Rank low, Rank high ) {
+    Rank last = low;
+    while ( ++low < high )  // From left to right, check each pair of adjacent elements one by one
+        if ( _elem[low - 1] > _elem[low] ) {
+            last = low;  // Update the right-most reverse pair position record and
+            swap ( _elem[low - 1], _elem[low] );
+        }
+    return last;  // Return the reverse pair position on the far right
+}
+
+template <typename T> // vector bubble sort
+void Vector<T>::bubbleSort ( Rank low, Rank high ) 
+{ while ( !bubble ( low, high-- ) ); } // Scan the exchange, trip by trip, until full order
+
+template <typename T> // merging of ordered vectors
+void Vector<T>::merge ( Rank low, Rank mid, Rank high ) { // the respective ordered subvectors [lo, mi) and [mi, hi)
+    T* A = _elem + low;
+    int lb = mid - low; T* B = new T[lb]; 
+    for ( Rank i = 0; i < lb; B[i] = A[i++] ); // copy the presubvector
+    int lc = high - mid; T* C = _elem + mid;
+    for ( Rank i = 0, j = 0, k = 0; j < lb; ) { // the smaller of B[j] and C[k] continues to the end of A
+        if ( ! ( k < lc ) || ( B[j] <= C[k] ) )  A[i++] = B[j++];
+        if ( ( k < lc ) &&  ( C[k] <  B[j] ) )  A[i++] = C[k++];
+    }
+    delete [] B;  // release temporary space B
+}
+
+template <typename T>
+void Vector<T>::mergeSort ( Rank low, Rank high ) {
+    if ( high - low < 2 ) return; // single-element intervals are naturally ordered, otherwise ••
+    int mid = ( low + high ) >> 1; mergeSort ( low, mid ); mergeSort ( mid, high ); // delimited by the midpoint
+    merge ( low, mid, high ); // merge
+}
+
 template <typename T> int Vector<T>::disordered() const {
     int n = 0;
     for ( int i = 1; i < _size; i++ ) 
@@ -115,13 +149,13 @@ template <typename T> static Rank binSearch ( T* A, T const& e, Rank low, Rank h
 
 template <typename T> static Rank fibSearch( T* A, T const & e, Rank low, Rank high ) {
     Fib fib ( high - low ); // create Fib array spent O(logn) = O(log(high - low))
-    while (lo < hi) {
+    while (low < high) {
         while ( high - low < fib.get() ) fib.prev();
 
         Rank mid = low + fib.get() - 1; // divided according to the golden ratio
-        if.     ( e < A[mid] ) high = mid; 
+        if      ( e < A[mid] ) high = mid; 
         else if ( A[mid] < e ) low = mid + 1; 
-        else                   return mi; 
+        else                   return mid; 
     }
     return -1;// fail to find
 }
@@ -182,6 +216,8 @@ int Vector<T>::deduplicate() {
 }
 
 template <typename T> int Vector<T>::uniquify() { // ordered vector repetitive element elimination algorithm
+    Rank i = 0, j = 0;
+    
     while ( ++j < _size ) 
         if ( _elem[i] != _elem[j] ) // skip the similarities
             _elem[++i] = _elem[j]; // When find different elements, move forward to the immediate right of the former
