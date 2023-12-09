@@ -102,7 +102,7 @@ void _vector_selectionSort ( Vector* vec, Rank low, Rank high ); // selection so
 void _vector_merge ( Vector* vec, Rank low, Rank mid, Rank high ); // merging algorithm
 void _vector_mergeSort ( Vector* vec, Rank low, Rank high ); // merging sorting algorithm
 void _vector_merge_effective ( Vector* vec, Rank low, Rank mid, Rank high, void* B ); // more effective with changed _vector_mergeSort_effective
-void _vector_mergeSor_effective ( Vector* vec, Rank low, Rank high ); // more effective merging sort
+void _vector_mergeSort_effective ( Vector* vec, Rank low, Rank high ); // more effective merging sort
 Rank _vector_partition ( Vector* vec, Rank low, Rank high ); // axis point pole-building algorithm
 void _vector_quickSort ( Vector* vec, Rank low, Rank high ); // quick sort algorithm
 void _vector_heapSort ( Vector* vec, Rank low, Rank high );  // heap sort
@@ -269,6 +269,28 @@ Rank _vector_bubble ( Vector* vec, Rank low, Rank high ) {
 
 void _vector_bubbleSort ( Vector* vec, Rank low, Rank high ) 
 { while ( low < ( high = _vector_bubble ( vec, low, high ) ) ) ; }  // Scan the exchange, trip by trip, until full order
+
+Rank _vector_max ( Vector* vec, Rank low, Rank high ) {
+    Rank maxRank = low;
+    
+    for ( Rank i = low + 1; i < high; ++i ) {
+        if ( ! vector_element_smaller ( vec, vec, i, maxRank ) ) 
+            maxRank = i;
+    }
+    return maxRank;
+}
+
+void _vector_selectionSort(Vector* vec, Rank low, Rank high) {
+    if ( vec->_size < 2 ) return;
+
+    for ( Rank i = high - 1; i > low; i-- ) {
+        // Find the position of the maximum element in the range [low, i]
+        Rank max = _vector_max ( vec, low, i + 1 );
+
+        // Swap the maximum element with the element at position i
+        swap ( vector_at ( vec, max ), vector_at ( vec, i ), vec->_elementSize );
+    }
+}
 
 void _vector_merge ( Vector* vec, Rank low, Rank mid, Rank high ) {
     size_t elemSize = vec->_elementSize;
@@ -795,7 +817,7 @@ int main() {
         vector_insert ( &test, vector_search_full ( &test, nums + i ) + 1, nums + i );
         vector_insert_last ( &test, nums2 + i );
     }
-    _vector_mergeSort_effective ( &test, 0, test._size );
+    _vector_selectionSort ( &test, 0, test._size );
     vector_print ( &test );
     printf( "%d\n", vector_disordered ( &test ) );
     printf( "%d\n", vector_find_full ( &test, &initialValue ) );
