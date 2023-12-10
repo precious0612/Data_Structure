@@ -113,6 +113,26 @@ void Vector<T>::merge ( Rank low, Rank mid, Rank high ) { // the respective orde
     delete [] B;  // release temporary space B
 }
 
+template <typename T> Rank Vector<T>::max ( Rank low, Rank high ) {
+    Rank max = low;
+
+    for ( Rank i = low + 1; i < high; i++ ) {
+        if ( ! _elem[i] < _elem[max] )
+            max = 1;
+    }
+    return max;
+}
+
+template <typename T> 
+void Vector<T>::selectionSort ( Rank low, Rank high ) {
+    if ( _size < 2 ) return;
+
+    for ( Rank i = high -1; i > low; i-- ) {
+        Rank maxRank = max ( low, i + 1 );
+        swap ( _elem[low], _elem[i + 1] );
+    }
+}
+
 template <typename T>
 void Vector<T>::mergeSort ( Rank low, Rank high ) {
     if ( high - low < 2 ) return; // single-element intervals are naturally ordered, otherwise ••
